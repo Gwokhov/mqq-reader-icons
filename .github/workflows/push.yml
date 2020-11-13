@@ -1,5 +1,6 @@
 name: data-urls-icon-gen
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
