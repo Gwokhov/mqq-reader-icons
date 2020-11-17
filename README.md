@@ -59,7 +59,8 @@
 
 ## figma 配置 & 发布 & 更新
 
-可参考 [webnovel-icons](https://github.com/yued-fe/webnovel-icons) 或 [leadream/figma-icon-automation](https://github.com/leadream/figma-icon-automation) README 文档
+1. 可参考 [webnovel-icons](https://github.com/yued-fe/webnovel-icons) 或 [leadream/figma-icon-automation](https://github.com/leadream/figma-icon-automation) README 文档
+2. Github token：联系 [Gwokhov](https://github.com/Gwokhov) 获取
 
 Base on:
 
