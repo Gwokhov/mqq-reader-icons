@@ -17,15 +17,15 @@ const getAttrs = style => {
   return Object.assign({}, baseAttrs, fillAttrs)
 }
 
-const getStr = (iconName, attrs, svgCode, isBit = false) =>
+const getStr = (iconName, attrs, content, isBit = false) =>
   `<template>
 ${
   isBit
-    ? `<span :class="{ext: ext}" :style="ext ? \`background: center / 100% no-repeat url(\${base64});\` : \`-webkit-mask-image:url(\${base64});background-color:\${color};-webkit-mask-position: center center;-webkit-mask-repeat: no-repeat;-webkit-mask-size: 100%;\` + \`width:\${size};height:\${size};\`"></span>`
+    ? `<span :class="{ext: ext}" :style="(ext ? \`background:center / 100% no-repeat url(\${base64});\` : \`-webkit-mask-image:url(\${base64});background-color:\${color};-webkit-mask-position: center center;-webkit-mask-repeat: no-repeat;-webkit-mask-size: 100%;\`) + \`width:\${size};height:\${size};\`"></span>`
     : `<svg
 ${attrs}
 >
-${svgCode}
+${content}
 </svg>`
 }
 </template>
@@ -35,7 +35,7 @@ ${svgCode}
     props: {
       size: {
         type: [Number, String],
-        default: 24
+        default: '24px'
       },
       color: {
         type: String,
@@ -55,16 +55,17 @@ ${svgCode}
       isBit
         ? `data() {
       return { 
-        base64: '${svgCode}'
+        base64: '${content}'
       }
     }` : ''}
   }
 </script>
-<style lang="scss">
+<style>
 span {
   vertical-align: text-bottom;
   display: inline-block;
 }
+</style>
 `
 
 module.exports = { getAttrs, getStr }

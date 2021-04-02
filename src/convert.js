@@ -50,6 +50,7 @@ const genFromPNG = (filePath, filename) => {
   const regRes = /(.+?).png/g.exec(filename)
   return imageToBase64(filePath)
     .then(encodeStr => {
+      encodeStr = 'data:image/png;base64,' + encodeStr
       const iconName = changeCase.paramCase(regRes[1]).trim()
       cssContent += cssTool.getStr(iconName, encodeStr)
       vueExportContent += `export { default as Icon${changeCase.pascalCase(
@@ -61,7 +62,6 @@ const genFromPNG = (filePath, filename) => {
         encodeStr,
         true
       )
-      console.log(vueComponentStr)
       writeFile(
         resolve(
           __dirname,
