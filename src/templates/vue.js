@@ -60,7 +60,7 @@ ${content}
     }` : ''}
   }
 </script>
-<style>
+<style scoped>
 span {
   vertical-align: text-bottom;
   display: inline-block;
