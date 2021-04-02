@@ -21,7 +21,7 @@ const getStr = (iconName, attrs, svgCode, isBit = false) =>
   `<template>
 ${
   isBit
-    ? `<span class="y-c-icon" :class="{ext: ext}" :style="ext ? \`background-image: url(\${base64});\` : \`-webkit-mask-image:url(\${base64});background-color:\${color};\`"></span>`
+    ? `<span :class="{ext: ext}" :style="ext ? \`background: center / 100% no-repeat url(\${base64});\` : \`-webkit-mask-image:url(\${base64});background-color:\${color};-webkit-mask-position: center center;-webkit-mask-repeat: no-repeat;-webkit-mask-size: 100%;\` + \`width:\${size};height:\${size};\`"></span>`
     : `<svg
 ${attrs}
 >
@@ -30,7 +30,6 @@ ${svgCode}
 }
 </template>
 <script>
-  ${isBit ? `import './common.css'` : ''}
   export default {
     name: 'Icon-${iconName}',
     props: {
@@ -61,6 +60,11 @@ ${svgCode}
     }` : ''}
   }
 </script>
+<style lang="scss">
+span {
+  vertical-align: text-bottom;
+  display: inline-block;
+}
 `
 
 module.exports = { getAttrs, getStr }

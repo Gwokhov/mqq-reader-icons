@@ -163,7 +163,6 @@ const handleOriginPNG = () => {
 
 Promise.all([handleOriginSVG(), handleOriginPNG()])
   .then(() => {
-    copyFile(join(__dirname, 'templates/common.css'), join(__dirname, '..', 'dist/vue/common.css'))
     writeFile(
       join(__dirname, '..', 'dist', 'icons.css'),
       `:root {\n${cssContent}}`
