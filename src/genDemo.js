@@ -3,7 +3,7 @@ const { join } = require('path')
 
 ensureDir(join(__dirname, '..', 'publish')).then(() => {
   const iconJSON = readFileSync(join(__dirname, '..', 'dist/data.json') ,'utf8')
-  let tpl = readFileSync(join(__dirname, 'template.html'), 'utf8')
+  let tpl = readFileSync(join(__dirname, 'template/demo.html'), 'utf8')
   tpl = tpl.replace(
     '// iconMap',
     `const iconMap = ${iconJSON}`

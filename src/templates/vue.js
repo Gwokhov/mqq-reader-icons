@@ -17,15 +17,20 @@ const getAttrs = style => {
   return Object.assign({}, baseAttrs, fillAttrs)
 }
 
-const getStr = (iconName, attrs, svgCode) =>
-`<template>
-<svg
-  ${attrs}
+const getStr = (iconName, attrs, svgCode, isBit = false) =>
+  `<template>
+${
+  isBit
+    ? `<span class="y-c-icon" :class="{ext: ext}" :style="ext ? \`background-image: url(\${base64});\` : \`-webkit-mask-image:url(\${base64});background-color:\${color};\`"></span>`
+    : `<svg
+${attrs}
 >
-  ${svgCode}
-</svg>
+${svgCode}
+</svg>`
+}
 </template>
 <script>
+  ${isBit ? `import './common.css'` : ''}
   export default {
     name: 'Icon-${iconName}',
     props: {
@@ -36,8 +41,24 @@ const getStr = (iconName, attrs, svgCode) =>
       color: {
         type: String,
         default: 'currentColor'
+      },
+      ${
+        isBit
+          ? `ext: {
+        type: Boolean,
+        default: false
+      },
+      `
+          : ''
       }
-    }
+    },
+    ${
+      isBit
+        ? `data() {
+      return { 
+        base64: '${svgCode}'
+      }
+    }` : ''}
   }
 </script>
 `

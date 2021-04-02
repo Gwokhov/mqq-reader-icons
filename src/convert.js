@@ -3,7 +3,8 @@ const {
   writeFile,
   readdir,
   readFileSync,
-  copy
+  copy,
+  copyFile
 } = require('fs-extra')
 const { join, resolve } = require('path')
 const SVGO = require('svgo')
@@ -44,13 +45,32 @@ const attrsToString = (attrs, style) => {
     .join(' ')
 }
 
-const genPNG = (filePath, filename) => {
-  console.log(`genPNG: ${filePath}`)
+const genFromPNG = (filePath, filename) => {
+  console.log(`genFromPNG: ${filePath}`)
   const regRes = /(.+?).png/g.exec(filename)
   return imageToBase64(filePath)
     .then(encodeStr => {
       const iconName = changeCase.paramCase(regRes[1]).trim()
-      cssContent += cssTool(iconName, encodeStr)
+      cssContent += cssTool.getStr(iconName, encodeStr)
+      vueExportContent += `export { default as Icon${changeCase.pascalCase(
+        iconName
+      )} } from './vue/${changeCase.pascalCase(iconName)}.vue';\n`
+      const vueComponentStr = vueTool.getStr(
+        changeCase.headerCase(iconName),
+        attrsToString(vueTool.getAttrs('fill'), 'fill'),
+        encodeStr,
+        true
+      )
+      console.log(vueComponentStr)
+      writeFile(
+        resolve(
+          __dirname,
+          '..',
+          'dist/vue',
+          `${changeCase.pascalCase(iconName)}.vue`
+        ),
+        vueComponentStr
+      )
     })
     .catch(err => {
       console.error(filePath, filename, err)
@@ -68,7 +88,9 @@ const genFromSVG = (filePath, filename) => {
     cssContent += `  --i-${changeCase.paramCase(iconName)}: url("${encodeSvg(
       res.data
     )}");\n`
-    vueExportContent += `export { default as Icon${changeCase.pascalCase(iconName)} } from './vue/${changeCase.pascalCase(iconName)}.vue';\n`
+    vueExportContent += `export { default as Icon${changeCase.pascalCase(
+      iconName
+    )} } from './vue/${changeCase.pascalCase(iconName)}.vue';\n`
     const vueComponentStr = vueTool.getStr(
       changeCase.headerCase(iconName),
       attrsToString(vueTool.getAttrs('fill'), 'fill'),
@@ -115,18 +137,24 @@ const handleOriginSVG = () => {
 
 const handleOriginPNG = () => {
   const originPath = join(__dirname, '..', 'dist/png')
+  const vueComponentPath = join(__dirname, '..', 'dist/vue')
 
   return readdir(originPath)
     .then(files => {
-      const base64Promises = files.map(filename => {
-        const filePath = join(originPath, filename)
-        if (filename.indexOf('nav-') !== 0) {
-          return genPNG(filePath, filename)
-        } else {
-          return copy(filePath, join(__dirname, '..', 'dist/png/nav', filename))
-        }
+      return ensureDir(vueComponentPath).then(() => {
+        const base64Promises = files.map(filename => {
+          const filePath = join(originPath, filename)
+          if (filename.indexOf('nav-') !== 0) {
+            return genFromPNG(filePath, filename)
+          } else {
+            return copy(
+              filePath,
+              join(__dirname, '..', 'dist/png/nav', filename)
+            )
+          }
+        })
+        return Promise.all(base64Promises)
       })
-      return Promise.all(base64Promises)
     })
     .catch(err => {
       console.error(err)
@@ -135,11 +163,13 @@ const handleOriginPNG = () => {
 
 Promise.all([handleOriginSVG(), handleOriginPNG()])
   .then(() => {
+    copyFile(join(__dirname, 'templates/common.css'), join(__dirname, '..', 'dist/vue/common.css'))
     writeFile(
       join(__dirname, '..', 'dist', 'icons.css'),
       `:root {\n${cssContent}}`
     )
     writeFile(join(__dirname, '..', 'dist', 'index.js'), vueExportContent)
+    writeFile(join(__dirname, '..', 'dist', 'index.d.ts'), vueExportContent)
   })
   .catch(err => {
     console.error(err)

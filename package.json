@@ -1,6 +1,6 @@
 {
   "name": "mqq-reader-icons",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Icon automation workflow with Figma",
   "files": [
     "dist"
@@ -13,6 +13,8 @@
     "icon",
     "design"
   ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "fetch": "rm -rf ./dist && node ./src/fetch.js",
     "convert": "node ./src/convert.js",
@@ -27,5 +29,6 @@
     "image-to-base64": "^2.1.1",
     "p-queue": "2.4.2",
     "svgo": "^1.3.2"
-  }
+  },
+  "devDependencies": {}
 }
