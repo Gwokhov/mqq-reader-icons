@@ -5,9 +5,10 @@
 const got = require('got')
 const { ensureDir, writeFile } = require('fs-extra')
 const { join, resolve } = require('path')
-const kebabCase = require('kebab-case')
+const changeCase = require('change-case')
 const Figma = require('figma-js')
 const PQueue = require('p-queue')
+const { includePages, excludePages, exportOptions } = require('./config')
 
 const { FIGMA_TOKEN, FIGMA_FILE_URL } = process.env
 const CONTENT_TYPES = {
@@ -16,12 +17,7 @@ const CONTENT_TYPES = {
   jpg: 'image/jpeg'
 }
 
-const options = {
-  format: 'svg',
-  bitFormat: 'png',
-  outputDir: './dist/',
-  scale: '1'
-}
+const options = exportOptions
 
 for (const arg of process.argv.slice(2)) {
   const [param, value] = arg.split('=')
@@ -55,9 +51,16 @@ client
     console.log('Processing response')
     const components = {}
 
-    function check(c) {
-      if (c.name.includes('Time Machine')) {
+    function check(c, level = 0) {
+      if (c.type === 'CANVAS' && excludePages.includes(c.name)) {
         return
+      } else if (
+        c.children &&
+        c.type === 'CANVAS' &&
+        includePages.includes(c.name) &&
+        level === 0
+      ) {
+        c.children.forEach(c => check(c, level + 1))
       } else if (c.type === 'COMPONENT') {
         const { name, id } = c
         const { description = '', key } = data.components[c.id]
@@ -76,12 +79,12 @@ client
           isBit,
           format: isBit ? options.bitFormat : options.format
         }
-      } else if (c.children) {
-        c.children.forEach(check)
+      } else if (c.children && level !== 0) {
+        c.children.forEach(c => check(c, level + 1))
       }
     }
 
-    data.document.children.forEach(check)
+    data.document.children.forEach(c => check(c, 0))
     if (Object.values(components).length === 0) {
       throw Error('No components found!')
     }
@@ -94,6 +97,14 @@ client
     console.log('Getting export urls')
 
     const getFileImage = (format, ids, scale = options.scale) => {
+      if (ids.length <= 0) {
+        return
+      }
+      console.log(fileId, {
+        format,
+        ids,
+        scale
+      })
       return client
         .fileImages(fileId, {
           format,
@@ -126,8 +137,8 @@ client
     const componentMap = { bit: [], vector: [] }
     Object.values(components).forEach(component =>
       component.isBit
-        ? componentMap.bit.push(kebabCase(component.name))
-        : componentMap.vector.push(kebabCase(component.name))
+        ? componentMap.bit.push(changeCase.paramCase(component.name))
+        : componentMap.vector.push(changeCase.paramCase(component.name))
     )
 
     return ensureDir(join(options.outputDir))
@@ -157,7 +168,7 @@ client
               join(
                 options.outputDir,
                 component.format,
-                `${component.name}.${component.format}`
+                `${changeCase.paramCase(component.name)}.${component.format}`
               ),
               response.body,
               component.isBit ? 'binary' : 'utf8'
