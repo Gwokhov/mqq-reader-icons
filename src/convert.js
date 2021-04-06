@@ -33,18 +33,6 @@ const encodeSvg = str =>
 
 const removeSVGTag = svg => cheerio.load(svg)('body').children().html()
 
-const attrsToString = (attrs, style) => {
-  return Object.keys(attrs)
-    .map(key => {
-      // should distinguish fill or stroke
-      if (key === 'width' || key === 'height' || key === style) {
-        return key + '={' + attrs[key] + '}'
-      }
-      return key + '="' + attrs[key] + '"'
-    })
-    .join(' ')
-}
-
 const genFromPNG = (filePath, filename) => {
   console.log(`genFromPNG: ${filePath}`)
   const regRes = /(.+?).png/g.exec(filename)
@@ -58,9 +46,8 @@ const genFromPNG = (filePath, filename) => {
       )} } from './vue/${changeCase.pascalCase(iconName)}.vue';\n`
       const vueComponentStr = vueTool.getStr(
         changeCase.headerCase(iconName),
-        attrsToString(vueTool.getAttrs('fill'), 'fill'),
+        true,
         encodeStr,
-        true
       )
       writeFile(
         resolve(
@@ -93,7 +80,7 @@ const genFromSVG = (filePath, filename) => {
     )} } from './vue/${changeCase.pascalCase(iconName)}.vue';\n`
     const vueComponentStr = vueTool.getStr(
       changeCase.headerCase(iconName),
-      attrsToString(vueTool.getAttrs('fill'), 'fill'),
+      false,
       svg
     )
     writeFile(
