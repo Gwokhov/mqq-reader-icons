@@ -1,6 +1,7 @@
 const commonAttrs = {
   'aria-hidden': 'true',
-  'v-on': '$listeners'
+  'v-on': '$listeners',
+  'style': 'vertical-align:text-bottom;display:inline-block;'
 }
 const svgAttrs = {
   xmlns: 'http://www.w3.org/2000/svg',
@@ -11,7 +12,7 @@ const svgAttrs = {
 }
 const bitAttrs = {
   ':style':
-    '(ext ? `background:center / 100% no-repeat url(${base64});` : `-webkit-mask-image:url(${base64});background-color:${color};-webkit-mask-position: center center;-webkit-mask-repeat: no-repeat;-webkit-mask-size: 100%;`) + `width:${size};height:${size};vertical-align:text-bottom;display:inline-block;`'
+    '(ext ? `background:center / 100% no-repeat url(${base64});` : `-webkit-mask-image:url(${base64});background-color:${color};-webkit-mask-position: center center;-webkit-mask-repeat: no-repeat;-webkit-mask-size: 100%;`) + `width:${size};height:${size};`'
 }
 const attrsToString = (attrs, style) => {
   return Object.keys(attrs)
