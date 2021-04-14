@@ -1,5 +1,5 @@
 module.exports = {
-  includePages: ['Base', 'Multicolor', 'Extension'],
+  includePages: ['Base', 'Multicolor', 'Extension', 'Artwork'],
   excludePages: [],
   exportOptions: {
     format: 'svg',
