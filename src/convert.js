@@ -18,7 +18,8 @@ const cssTool = require('./templates/css')
 let cssContent = ''
 let vueExportContent = ''
 
-const svgo = new SVGO(svgoOptions)
+const svgo = new SVGO(svgoOptions(true))
+const svgoWithFill = new SVGO(svgoOptions(false))
 
 const encodeSvg = str =>
   'data:image/svg+xml,' +
@@ -47,7 +48,7 @@ const genFromPNG = (filePath, filename) => {
       const vueComponentStr = vueTool.getStr(
         changeCase.headerCase(iconName),
         true,
-        encodeStr,
+        encodeStr
       )
       writeFile(
         resolve(
@@ -64,11 +65,11 @@ const genFromPNG = (filePath, filename) => {
     })
 }
 
-const genFromSVG = (filePath, filename) => {
+const genFromSVG = (filePath, filename, cleanFill) => {
   console.log(`genFromSVG: ${filePath}`)
   const regRes = /(.+?).svg/g.exec(filename)
   const data = readFileSync(filePath, 'utf8')
-  return svgo.optimize(data).then(res => {
+  return (cleanFill ? svgo : svgoWithFill).optimize(data).then(res => {
     const svg = removeSVGTag(res.data)
     const iconName = regRes[1].trim()
 
@@ -101,18 +102,32 @@ const genFromSVG = (filePath, filename) => {
 
 const handleOriginSVG = () => {
   const originPath = join(__dirname, '..', 'dist/svg')
+  const originArtworkPath = join(__dirname, '..', 'dist/svg/artwork')
   const compressPath = join(__dirname, '..', 'dist/compressed/svg')
   const vueComponentPath = join(__dirname, '..', 'dist/vue')
 
-  return readdir(originPath)
-    .then(files => {
+  return Promise.all([readdir(originPath), readdir(originArtworkPath)])
+    .then(res => {
+      const files = [
+        ...res[0].map(filename => ({
+          withFill: false,
+          filename
+        })),
+        ...res[1].map(filename => ({
+          withFill: true,
+          filename
+        }))
+      ].filter(v => /^.*\.svg$/.test(v.filename))
       return Promise.all([
         ensureDir(compressPath),
         ensureDir(vueComponentPath)
       ]).then(() => {
-        const dataUrlPromises = files.map(filename => {
-          const filePath = join(originPath, filename)
-          return genFromSVG(filePath, filename)
+        const dataUrlPromises = files.map(v => {
+          const filePath = join(
+            v.withFill ? originArtworkPath : originPath,
+            v.filename
+          )
+          return genFromSVG(filePath, v.filename, !v.withFill)
         })
         return Promise.all(dataUrlPromises)
       })
@@ -134,10 +149,10 @@ const handleOriginPNG = () => {
           if (filename.indexOf('nav-') !== 0) {
             return genFromPNG(filePath, filename)
           } else {
-            return copy(
-              filePath,
-              join(__dirname, '..', 'dist/png/nav', filename)
-            )
+            // return copy(
+            //   filePath,
+            //   join(__dirname, '..', 'dist/png/nav', filename)
+            // )
           }
         })
         return Promise.all(base64Promises)

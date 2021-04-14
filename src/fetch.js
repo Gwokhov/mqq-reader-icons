@@ -51,7 +51,7 @@ client
     console.log('Processing response')
     const components = {}
 
-    function check(c, level = 0) {
+    function check(c, level = 0, pageName) {
       if (c.type === 'CANVAS' && excludePages.includes(c.name)) {
         return
       } else if (
@@ -60,7 +60,7 @@ client
         includePages.includes(c.name) &&
         level === 0
       ) {
-        c.children.forEach(c => check(c, level + 1))
+        c.children.forEach(v => check(v, level + 1, c.name))
       } else if (c.type === 'COMPONENT') {
         const { name, id } = c
         const { description = '', key } = data.components[c.id]
@@ -68,6 +68,7 @@ client
         const isBit =
           name.lastIndexOf('-bit') > 0 &&
           name.lastIndexOf('-bit') + 4 === name.length
+        console.log(pageName)
 
         components[id] = {
           name,
@@ -77,10 +78,11 @@ client
           width,
           height,
           isBit,
+          pageName,
           format: isBit ? options.bitFormat : options.format
         }
       } else if (c.children && level !== 0) {
-        c.children.forEach(c => check(c, level + 1))
+        c.children.forEach(c => check(c, level + 1, pageName))
       }
     }
 
@@ -152,6 +154,7 @@ client
       .then(() => components)
   })
   .then(components => {
+    console.log(components)
     return queueTasks(
       Object.values(components).map(component => () => {
         const reqOptions = {
@@ -163,11 +166,12 @@ client
           ? (reqOptions.responseType = 'buffer')
           : (reqOptions.encoding = 'utf8')
         return got.get(component.image, reqOptions).then(response => {
-          return ensureDir(join(options.outputDir, component.format)).then(() =>
+          const subDir = component.pageName === 'Artwork' ? `${component.format}/artwork` : component.format
+          return ensureDir(join(options.outputDir, subDir)).then(() =>
             writeFile(
               join(
                 options.outputDir,
-                component.format,
+                subDir,
                 `${changeCase.paramCase(component.name)}.${component.format}`
               ),
               response.body,
